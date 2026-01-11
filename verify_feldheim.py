@@ -137,6 +137,37 @@ def feldheim(x1, tau, k, n2, params):
         fac4=hermite_poly(n2-R,arg_fac4)
         part3+=fac1*fac2*fac3*fac4
     return part1*part2*part3
+
+def sigma_feldheim(x1, tau, k, n2, params):
+    Omega = params['Omega']
+    D = params["D"]
+    beta = params["beta"]
+    g0 = params["g0"]
+
+    alpha_val = alpha_func(tau, params)
+    Delta_val = Delta_func(x1, tau, params)
+    rho_val = rho_func(x1, params)
+
+    Y_val = Y(tau, params)
+
+    part1 = mp.sqrt(2 * mp.pi / Omega)
+    sigma=mp.j
+    part2=(alpha_val**2-1)**mp.mpf((k+n2)/2)*sigma**n2/((alpha_val**2+1)**mp.mpf((1+k+n2)/2))
+    part3 = 0
+    min_k_n2 = min(k, n2)
+    for R in range(0,min_k_n2+1):
+        fac1 = mp.factorial(R) * mp.binomial(k, R) * mp.binomial(n2, R)
+        fac2=(4*alpha_val/(sigma*mp.fabs(alpha_val**2-1)))**R
+        arg_fac3 = (mp.j * Y_val * mp.sqrt(2 * beta / Omega) * g0 / (D * (1 + alpha_val ** 2)) * rho_val \
+                    - mp.sqrt(Omega) * alpha_val / (1 + alpha_val ** 2) * Delta_val) * mp.sqrt((alpha_val ** 2 + 1) / (alpha_val ** 2 - 1))
+        fac3 = hermite_poly(k - R, arg_fac3)
+        arg_fac4 = (mp.j * Y_val * mp.sqrt(2 * beta / Omega) * g0 * alpha_val / (D * (1 + alpha_val ** 2)) * rho_val \
+                    + mp.sqrt(Omega) * Delta_val / (1 + alpha_val ** 2))*1/sigma*mp.sqrt((alpha_val**2+1)/(alpha_val**2-1))
+        fac4 = hermite_poly(n2 - R, arg_fac4)
+        part3 += fac1 * fac2 * fac3 * fac4
+    return part1 * part2 * part3
+
+
 #######################read from csv
 groupNum=int(sys.argv[1])
 rowNum=int(sys.argv[2])
@@ -213,10 +244,10 @@ params = {
 }
 half=mp.mpf(0.5)
 x1=mp.mpf(0.2)
-k=1
-n2=2
+k=2
+n2=1
 
 rst=numerical_integral(x1,tau,k,n2,params)
-fh_rst=feldheim(x1,tau,k,n2,params)
+fh_rst=sigma_feldheim(x1,tau,k,n2,params)
 print(rst)
 print(fh_rst)
